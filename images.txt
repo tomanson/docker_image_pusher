@@ -1,2 +1,1 @@
-alpine
-cloudflare_custom:latest
+cloudflare_custom
