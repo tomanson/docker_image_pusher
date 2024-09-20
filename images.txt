@@ -1,2 +1,2 @@
-cloudflare/cloudflared
-onething1/wxedge
+cloudflare/cloudflared:latest
+onething1/wxedge:latest
