@@ -1,4 +1,4 @@
 cloudflare/cloudflared:latest
 onething1/wxedge:latest
-zerotier/moon
+jonnyan404/zerotier-moon
 
