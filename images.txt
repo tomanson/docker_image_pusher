@@ -1,1 +1,1 @@
-Deco TV
+tomanson/decotv:latest
