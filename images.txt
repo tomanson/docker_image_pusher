@@ -1,1 +1,1 @@
-decotv
+ghcr.io/decotv/decotv:latest
