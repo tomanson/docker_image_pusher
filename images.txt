@@ -1,1 +1,1 @@
-ghcr.io/decotv/decotv:latest
+crpi-13xp63nwhzot3pjd.cn-shenzhen.personal.cr.aliyuncs.com/fstwu/decotv:latest
