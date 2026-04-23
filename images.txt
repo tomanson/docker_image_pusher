@@ -1,1 +1,1 @@
-decohererk/decotv:latest
+Deco TV
