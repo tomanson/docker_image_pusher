@@ -57,7 +57,7 @@ jobs:
         # 1. 登录阿里云
         echo "$ALIYUN_REGISTRY_PASSWORD" | docker login -u "$ALIYUN_REGISTRY_USER" --password-stdin "$ALIYUN_REGISTRY"
 
-        # 2. 数据预处理：判断镜像是否重名（保留你原有的逻辑）
+        # 2. 数据预处理：判断镜像是否重名
         declare -A duplicate_images
         declare -A temp_map
         
@@ -68,8 +68,12 @@ jobs:
                 continue
             fi
             
+            # 获取纯净的镜像定义（去除 --platform 参数）
+            # 使用 sed 删除 --platform 及其后的参数，然后使用 xargs 去除首尾空格
+            clean_line=$(echo "$line" | sed -E 's/--platform[= ]+[^ ]+//g' | xargs)
+            
             # 获取镜像的完整名称，例如 kasmweb/nginx:1.25.3
-            image=$(echo "$line" | awk '{print $NF}')
+            image=$(echo "$clean_line" | awk '{print $NF}')
             image="${image%%@*}" # 去除 @sha256...
             
             # 获取镜像名:版本号 (例如 nginx:1.25.3)
@@ -109,9 +113,8 @@ jobs:
             fi
             echo "Build platform: $platform"
             
-            # 提取镜像源地址 (去掉 --platform 参数后的部分)
-            # 假设格式为: --platform xxx image:tag 或 image:tag
-            source_image=$(echo "$line" | sed -E 's/--platform[ =][^ ]+//g' | xargs)
+            # 提取纯净的镜像源地址 (去掉 --platform 参数后的部分)
+            source_image=$(echo "$line" | sed -E 's/--platform[= ]+[^ ]+//g' | xargs)
             echo "Source image definition: $source_image"
 
             # 解析源镜像的各个部分 (用于生成新名字)
@@ -122,7 +125,7 @@ jobs:
             # 获取纯镜像名
             image_name=$(echo "$image_name_tag" | awk -F':' '{print $1}')
             # 获取标签 (如果没有则默认为 latest)
-            image_tag=$(echo "$image_name_tag" | awk -F':' '{if (NF>1) print $2; else print "latest"}')
+            image_tag=$(echo "$image_name_tag" | awk -F':' '{if (NF>1) print $2; else print "latest"}")
 
             # --- 关键修改：构建新镜像名逻辑 ---
             platform_prefix="${platform//\//_}_" # linux/amd64 -> linux_amd64_
@@ -136,7 +139,6 @@ jobs:
             fi
             
             # 最终推送到阿里云的镜像名
-            # 格式: registry/namespace/platform_namespace_imagename:tag
             new_image="$ALIYUN_REGISTRY/$ALIYUN_NAME_SPACE/$platform_prefix$name_space_prefix$image_name:$image_tag"
             
             echo "=================================================="
@@ -145,7 +147,9 @@ jobs:
             echo "=================================================="
 
             # --- 关键修改：执行构建并推送 ---
-            # 使用 buildx 直接构建并推送，不再需要 pull -> tag -> push
+            # 使用 buildx 直接构建并推送
+            # 注意：这里假设你的 Dockerfile 在当前目录 (.)
+            # 如果你的 Dockerfile 名字不同，请修改 -f 参数
             docker buildx build \
               --platform "$platform" \
               -t "$new_image" \
